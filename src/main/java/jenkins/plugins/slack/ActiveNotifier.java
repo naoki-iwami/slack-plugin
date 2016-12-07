@@ -8,6 +8,8 @@ import hudson.model.BuildListener;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.Hudson;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
@@ -65,6 +67,21 @@ public class ActiveNotifier implements FineGrainedNotifier {
             if (scmCause == null) {
                 MessageBuilder message = new MessageBuilder(notifier, build);
                 message.append(causeAction.getShortDescription());
+
+                ParametersAction parametersAction = build.getAction(ParametersAction.class);
+                if (parametersAction != null) {
+                	List<ParameterValue> parameters = parametersAction.getParameters();
+                	StringBuilder pmsg = new StringBuilder();
+                	pmsg.append(" [");
+                	for (ParameterValue param : parameters) {
+                		pmsg.append(param.getName()).append("=").append(param.getValue().toString());
+                		pmsg.append(", ");
+                	}
+                	pmsg.setLength(pmsg.length() - 2);
+                	pmsg.append("]");
+                	message.append(pmsg.toString());
+                }
+
                 notifyStart(build, message.appendOpenLink().toString());
                 // Cause was found, exit early to prevent double-message
                 return;
